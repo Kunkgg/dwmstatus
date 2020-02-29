@@ -164,17 +164,6 @@ getbattery(char *base)
 }
 
 char *
-gettemperature(char *base, char *sensor)
-{
-	char *co;
-
-	co = readfile(base, sensor);
-	if (co == NULL)
-		return smprintf("");
-	return smprintf("%02.0f°C", atof(co) / 1000);
-}
-
-char *
 getmpdstat() {
     struct mpd_song * song = NULL;
 	const char * title = NULL;
@@ -221,7 +210,6 @@ main(void)
 	char *status;
 	char *avgs;
 	char *timesh;
-	char *t0, *t1, *t2;
 	char *mpdstat;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
@@ -232,9 +220,6 @@ main(void)
 	for (;;sleep(60)) {
 		avgs = loadavg();
 		timesh = mktimes("%Y %b %d(%a) %H:%M", tzshanghai);
-		t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
-		t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
-		t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
         mpdstat = getmpdstat();
 
 		status = smprintf("| %s |%s %s %s | %s | %s ",
@@ -242,9 +227,6 @@ main(void)
 		setstatus(status);
 
 		free(mpdstat);
-		free(t0);
-		free(t1);
-		free(t2);
 		free(avgs);
 		free(timesh);
 		free(status);
