@@ -48,6 +48,22 @@ smprintf(char *fmt, ...)
 	return ret;
 }
 
+int
+runevery(time_t *ltime, int sec){
+    /* return 1 if sec elapsed since last run
+     * else return 0
+    */
+    time_t now = time(NULL);
+
+    if ( difftime(now, *ltime ) >= sec)
+    {
+        *ltime = now;
+        return(1);
+    }
+    else
+        return(0);
+}
+
 void
 settz(char *tzname)
 {
@@ -177,28 +193,39 @@ get_vol(void)
 int
 main(void)
 {
-	char *status;
-	char *timesh;
-	char *mpdstat;
-    char *vol;
+	char *status = NULL;
+	char *timesh = NULL;
+	char *mpdstat = NULL;
+    char *vol = NULL;
+
+    time_t count1min = 0;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
 		fprintf(stderr, "dwmstatus: cannot open display.\n");
 		return 1;
 	}
 
-	for (;;sleep(60)) {
-		timesh = mktimes("%Y %b %d(%a) %H:%M", tzshanghai);
-        mpdstat = get_mpdstat();
-        vol = get_vol();
+	for (;;sleep(1)) {
 
-		status = smprintf("| %s | %s | %s ",
-				mpdstat, vol, timesh);
+        if (runevery(&count1min, 60)) {
+            free(timesh);
+            free(vol);
+            timesh = mktimes("%Y %b %d(%a) %H:%M", tzshanghai);
+            vol = get_vol();
+        }
+        mpdstat = get_mpdstat();
+
+        if (strcmp(mpdstat, "") == 0) {
+            status = smprintf("| %s | %s ",
+                    vol, timesh);
+        } else {
+            status = smprintf("| %s | %s | %s ",
+                    mpdstat, vol, timesh);
+        }
+
 		setstatus(status);
 
 		free(mpdstat);
-		free(timesh);
-		free(vol);
 		free(status);
 	}
 
