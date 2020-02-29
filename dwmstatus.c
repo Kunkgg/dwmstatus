@@ -17,9 +17,7 @@
 
 #include <X11/Xlib.h>
 
-char *tzargentina = "America/Buenos_Aires";
-char *tzutc = "UTC";
-char *tzberlin = "Europe/Berlin";
+char *tzshanghai = "Asia/Shanghai";
 
 static Display *dpy;
 
@@ -180,11 +178,7 @@ main(void)
 {
 	char *status;
 	char *avgs;
-	char *bat;
-	char *bat1;
-	char *tmar;
-	char *tmutc;
-	char *tmbln;
+	char *timesh;
 	char *t0, *t1, *t2;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
@@ -194,29 +188,20 @@ main(void)
 
 	for (;;sleep(60)) {
 		avgs = loadavg();
-		bat = getbattery("/sys/class/power_supply/BAT0");
-		bat1 = getbattery("/sys/class/power_supply/BAT1");
-		tmar = mktimes("%H:%M", tzargentina);
-		tmutc = mktimes("%H:%M", tzutc);
-		tmbln = mktimes("KW %W %a %d %b %H:%M %Z %Y", tzberlin);
+		timesh = mktimes("%Y %b %d(%a) %H:%M", tzshanghai);
 		t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
 		t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
 		t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
 
-		status = smprintf("T:%s|%s|%s L:%s B:%s|%s A:%s U:%s %s",
-				t0, t1, t2, avgs, bat, bat1, tmar, tmutc,
-				tmbln);
+		status = smprintf("%s %s %s | %s | %s ",
+				t0, t1, t2, avgs, timesh);
 		setstatus(status);
 
 		free(t0);
 		free(t1);
 		free(t2);
 		free(avgs);
-		free(bat);
-		free(bat1);
-		free(tmar);
-		free(tmutc);
-		free(tmbln);
+		free(timesh);
 		free(status);
 	}
 
@@ -224,4 +209,3 @@ main(void)
 
 	return 0;
 }
-
