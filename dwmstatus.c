@@ -81,17 +81,6 @@ setstatus(char *str)
 }
 
 char *
-loadavg(void)
-{
-	double avgs[3];
-
-	if (getloadavg(avgs, 3) < 0)
-		return smprintf("");
-
-	return smprintf("%.2f %.2f %.2f", avgs[0], avgs[1], avgs[2]);
-}
-
-char *
 readfile(char *base, char *file)
 {
 	char *path, line[513];
@@ -157,7 +146,6 @@ int
 main(void)
 {
 	char *status;
-	char *avgs;
 	char *timesh;
 	char *mpdstat;
 
@@ -167,16 +155,14 @@ main(void)
 	}
 
 	for (;;sleep(60)) {
-		avgs = loadavg();
 		timesh = mktimes("%Y %b %d(%a) %H:%M", tzshanghai);
         mpdstat = getmpdstat();
 
-		status = smprintf("| %s |%s %s %s | %s | %s ",
-				mpdstat, t0, t1, t2, avgs, timesh);
+		status = smprintf("| %s | %s ",
+				mpdstat, timesh);
 		setstatus(status);
 
 		free(mpdstat);
-		free(avgs);
 		free(timesh);
 		free(status);
 	}
