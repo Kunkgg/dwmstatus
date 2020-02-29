@@ -28,3 +28,10 @@ LDFLAGS = -g ${LIBS}
 # compiler and linker
 CC = cc
 
+# mpd
+MPDLIB   =  -lmpdclient
+MPDFLAG  =  -DMPD
+
+LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${MPDLIB}
+
+CPPFLAGS = ${MPDFLAG} -DVERSION=\"${VERSION}\"

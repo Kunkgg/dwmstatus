@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 
 #include <X11/Xlib.h>
+#include <mpd/client.h>
 
 char *tzshanghai = "Asia/Shanghai";
 
@@ -173,6 +174,47 @@ gettemperature(char *base, char *sensor)
 	return smprintf("%02.0f°C", atof(co) / 1000);
 }
 
+char *
+getmpdstat() {
+    struct mpd_song * song = NULL;
+	const char * title = NULL;
+	const char * artist = NULL;
+	char * retstr = NULL;
+	int elapsed = 0, total = 0;
+    struct mpd_connection * conn ;
+    if (!(conn = mpd_connection_new("localhost", 0, 30000)) ||
+        mpd_connection_get_error(conn)){
+            return smprintf("");
+    }
+
+    mpd_command_list_begin(conn, true);
+    mpd_send_status(conn);
+    mpd_send_current_song(conn);
+    mpd_command_list_end(conn);
+
+    struct mpd_status* theStatus = mpd_recv_status(conn);
+        if ((theStatus) && (mpd_status_get_state(theStatus) == MPD_STATE_PLAY)) {
+                mpd_response_next(conn);
+                song = mpd_recv_song(conn);
+                title = smprintf("%s",mpd_song_get_tag(song, MPD_TAG_TITLE, 0));
+                artist = smprintf("%s",mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
+
+                elapsed = mpd_status_get_elapsed_time(theStatus);
+                total = mpd_status_get_total_time(theStatus);
+                mpd_song_free(song);
+                retstr = smprintf("%.2d:%.2d/%.2d:%.2d %s - %s",
+                                elapsed/60, elapsed%60,
+                                total/60, total%60,
+                                artist, title);
+                free((char*)title);
+                free((char*)artist);
+        }
+        else retstr = smprintf("");
+		mpd_response_finish(conn);
+		mpd_connection_free(conn);
+		return retstr;
+}
+
 int
 main(void)
 {
@@ -180,6 +222,7 @@ main(void)
 	char *avgs;
 	char *timesh;
 	char *t0, *t1, *t2;
+	char *mpdstat;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
 		fprintf(stderr, "dwmstatus: cannot open display.\n");
@@ -192,11 +235,13 @@ main(void)
 		t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
 		t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
 		t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
+        mpdstat = getmpdstat();
 
-		status = smprintf("%s %s %s | %s | %s ",
-				t0, t1, t2, avgs, timesh);
+		status = smprintf("| %s |%s %s %s | %s | %s ",
+				mpdstat, t0, t1, t2, avgs, timesh);
 		setstatus(status);
 
+		free(mpdstat);
 		free(t0);
 		free(t1);
 		free(t2);
