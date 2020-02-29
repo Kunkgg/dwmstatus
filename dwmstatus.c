@@ -76,6 +76,7 @@ mktimes(char *fmt, char *tzname)
 	char buf[129];
 	time_t tim;
 	struct tm *timtm;
+    char * icon="";
 
 	settz(tzname);
 	tim = time(NULL);
@@ -88,7 +89,7 @@ mktimes(char *fmt, char *tzname)
 		return smprintf("");
 	}
 
-	return smprintf("%s", buf);
+	return smprintf("%s %s", icon, buf);
 }
 
 void
@@ -131,6 +132,7 @@ get_mpdstat() {
         mpd_connection_get_error(conn)){
             return smprintf("");
     }
+    char * icon = "🎵";
 
     mpd_command_list_begin(conn, true);
     mpd_send_status(conn);
@@ -147,7 +149,8 @@ get_mpdstat() {
                 elapsed = mpd_status_get_elapsed_time(theStatus);
                 total = mpd_status_get_total_time(theStatus);
                 mpd_song_free(song);
-                retstr = smprintf("%.2d:%.2d/%.2d:%.2d %s - %s",
+                retstr = smprintf("%s %.2d:%.2d/%.2d:%.2d %s - %s",
+                                icon,
                                 elapsed/60, elapsed%60,
                                 total/60, total%60,
                                 artist, title);
@@ -164,6 +167,12 @@ char *
 get_vol(void)
 {
     int vol;
+    int maxvol = 64;
+    char * icon0 = "🔇";
+    char * iconlow = "🔈";
+    char * iconmed = "🔉";
+    char * iconhig = "🔊";
+
     snd_hctl_t *hctl;
     snd_ctl_elem_id_t *id;
     snd_ctl_elem_value_t *control;
@@ -184,10 +193,18 @@ get_vol(void)
     snd_ctl_elem_value_set_id(control, id);
 
     snd_hctl_elem_read(elem, control);
-    vol = (int)snd_ctl_elem_value_get_integer(control,0);
-
+    vol = (int)snd_ctl_elem_value_get_integer(control,0) * 100 / maxvol;
     snd_hctl_close(hctl);
-    return smprintf("vol:%d", vol);
+
+    if (vol == 0) {
+        return smprintf("%s", icon0);
+    } else if (vol <= 25) {
+        return smprintf("%s %d", iconlow, vol);
+    } else if (vol <= 75) {
+        return smprintf("%s %d", iconmed, vol);
+    } else {
+        return smprintf("%s %d", iconhig, vol);
+    }
 }
 
 int
