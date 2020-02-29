@@ -12,10 +12,11 @@ X11LIB = /usr/X11R6/lib
 
 # includes and libs
 INCS = -I. -I/usr/include -I${X11INC}
-LIBS = -L/usr/lib -lc -L${X11LIB} -lX11
+#LIBS = -L/usr/lib -lc -L${X11LIB} -lX11
 
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_DEFAULT_SOURCE
+#CFLAGS = -g -Wall -O0 ${INCS} ${CPPFLAGS}
 CFLAGS = -g -std=c99 -pedantic -Wall -O0 ${INCS} ${CPPFLAGS}
 #CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
 LDFLAGS = -g ${LIBS}
@@ -28,10 +29,12 @@ LDFLAGS = -g ${LIBS}
 # compiler and linker
 CC = cc
 
-# mpd
+# mpd & alsa
 MPDLIB   =  -lmpdclient
 MPDFLAG  =  -DMPD
 
-LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${MPDLIB}
+ALSALIB   =  -lasound
+
+LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${MPDLIB} ${ALSALIB}
 
 CPPFLAGS = ${MPDFLAG} -DVERSION=\"${VERSION}\"

@@ -17,6 +17,8 @@
 
 #include <X11/Xlib.h>
 #include <mpd/client.h>
+#include <alsa/asoundlib.h>
+#include <alsa/control.h>
 
 char *tzshanghai = "Asia/Shanghai";
 
@@ -102,7 +104,7 @@ readfile(char *base, char *file)
 }
 
 char *
-getmpdstat() {
+get_mpdstat() {
     struct mpd_song * song = NULL;
 	const char * title = NULL;
 	const char * artist = NULL;
@@ -142,12 +144,43 @@ getmpdstat() {
 		return retstr;
 }
 
+char *
+get_vol(void)
+{
+    int vol;
+    snd_hctl_t *hctl;
+    snd_ctl_elem_id_t *id;
+    snd_ctl_elem_value_t *control;
+
+// To find card and subdevice: /proc/asound/, aplay -L, amixer controls
+    snd_hctl_open(&hctl, "hw:0", 0);
+    snd_hctl_load(hctl);
+
+    snd_ctl_elem_id_alloca(&id);
+    snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_MIXER);
+
+// amixer controls
+    snd_ctl_elem_id_set_name(id, "Master Playback Volume");
+
+    snd_hctl_elem_t *elem = snd_hctl_find_elem(hctl, id);
+
+    snd_ctl_elem_value_alloca(&control);
+    snd_ctl_elem_value_set_id(control, id);
+
+    snd_hctl_elem_read(elem, control);
+    vol = (int)snd_ctl_elem_value_get_integer(control,0);
+
+    snd_hctl_close(hctl);
+    return smprintf("vol:%d", vol);
+}
+
 int
 main(void)
 {
 	char *status;
 	char *timesh;
 	char *mpdstat;
+    char *vol;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
 		fprintf(stderr, "dwmstatus: cannot open display.\n");
@@ -156,14 +189,16 @@ main(void)
 
 	for (;;sleep(60)) {
 		timesh = mktimes("%Y %b %d(%a) %H:%M", tzshanghai);
-        mpdstat = getmpdstat();
+        mpdstat = get_mpdstat();
+        vol = get_vol();
 
-		status = smprintf("| %s | %s ",
-				mpdstat, timesh);
+		status = smprintf("| %s | %s | %s ",
+				mpdstat, vol, timesh);
 		setstatus(status);
 
 		free(mpdstat);
 		free(timesh);
+		free(vol);
 		free(status);
 	}
 
