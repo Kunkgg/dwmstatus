@@ -1,6 +1,8 @@
 /*
- * Copy me if you can.
- * by 20h
+ * Simple dwmstatus, display:
+ *   - mpd status
+ *   - volume
+ *   - time
  */
 
 #define _BSD_SOURCE
