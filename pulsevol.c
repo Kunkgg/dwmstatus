@@ -183,6 +183,8 @@ parse_vol(char *vol_str) {
 char *
 get_vol() {
     int ctr;
+    int run_sink_n = -1;
+    int target_sink_n = 0;
     char vol_str[PA_CVOLUME_SNPRINT_MAX];
     struct pa_cvolume *volume_tmp;
 	pa_sink_state_t state;
@@ -196,24 +198,40 @@ get_vol() {
     pa_devicelist_t pa_output_devicelist[16];
 
     if (pa_get_devicelist(pa_output_devicelist) < 0) {
-	/* fprintf(stderr, "failed to get device list\n"); */
         return smprintf("%s", "vol_failed");
     }
 
+    // Decide the target sink's index in devicelist array
+    // Invaild, the server does not support sink state introspection.
+    // Running, sink is playing and used by at least one non-corked sink-input.
+    // Idle, the sink is playing but there is no non-corked sink-input attached to it.
+    // Suspended, actual sink access can be closed, for instance. No sounds are playing.
     for (ctr = 0; ctr < 16; ctr++) {
+        if (! pa_output_devicelist[ctr].initialized) {
+            break;
+        }
         state = pa_output_devicelist[ctr].state;
         if (state == PA_SINK_RUNNING  || state == PA_SINK_IDLE) {
-            if (strstr(pa_output_devicelist[ctr].name, "blue")) {
-                icon = smprintf("%s %s", icon_bluetooth, icon_headset);
-            } else {
-                icon = smprintf("%s", icon_vol);
-            }
-            volume_tmp = &pa_output_devicelist[ctr].volume;
-            pa_cvolume_snprint(vol_str, sizeof(vol_str), volume_tmp);
-            vol = parse_vol(vol_str);
+            run_sink_n = ctr;
             break;
         }
     }
+
+    // First find Running or Idle sink as target,
+    // If there are not Running or Idle sinks, use the last initialized sink.
+    if (run_sink_n >= 0) {
+        target_sink_n = run_sink_n;
+    } else {
+        target_sink_n = ctr - 1;
+    }
+    if (strstr(pa_output_devicelist[target_sink_n].name, "blue")) {
+        icon = smprintf("%s %s", icon_bluetooth, icon_headset);
+    } else {
+        icon = smprintf("%s", icon_vol);
+    }
+    volume_tmp = &pa_output_devicelist[target_sink_n].volume;
+    pa_cvolume_snprint(vol_str, sizeof(vol_str), volume_tmp);
+    vol = parse_vol(vol_str);
 
     return smprintf("%s %s", icon, vol);
 }
