@@ -2,7 +2,7 @@
  * Simple dwmstatus, display:
  *   - mpd status
  *   - volume (by PulseAudio, dectect bluetooth headset)
- *   - time
+ *   - time and date
  */
 
 #define _BSD_SOURCE
