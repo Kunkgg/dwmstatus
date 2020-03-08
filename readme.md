@@ -8,6 +8,8 @@ Simplest dwmstatus in C, inculde:
 *   volume (by PulseAudio, dectect bluetooth headset)
 *   time and date
 
+![dwmstatus-screenshot](./dwmstatus-screenshot.png)
+
 ## Usage
 
 ### Step1
