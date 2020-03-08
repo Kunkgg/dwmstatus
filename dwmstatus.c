@@ -1,7 +1,7 @@
 /*
  * Simple dwmstatus, display:
  *   - mpd status
- *   - volume
+ *   - volume (by PulseAudio, dectect bluetooth headset)
  *   - time
  */
 
@@ -22,33 +22,11 @@
 #include <alsa/asoundlib.h>
 #include <alsa/control.h>
 
+#include "pulsevol.c"
+
 char *tzshanghai = "Asia/Shanghai";
 
 static Display *dpy;
-
-char *
-smprintf(char *fmt, ...)
-{
-	va_list fmtargs;
-	char *ret;
-	int len;
-
-	va_start(fmtargs, fmt);
-	len = vsnprintf(NULL, 0, fmt, fmtargs);
-	va_end(fmtargs);
-
-	ret = malloc(++len);
-	if (ret == NULL) {
-		perror("malloc");
-		exit(1);
-	}
-
-	va_start(fmtargs, fmt);
-	vsnprintf(ret, len, fmt, fmtargs);
-	va_end(fmtargs);
-
-	return ret;
-}
 
 int
 runevery(time_t *ltime, int sec){
@@ -165,49 +143,50 @@ get_mpdstat() {
 		return retstr;
 }
 
-char *
-get_vol(void)
-{
-    int vol;
-    int maxvol = 64;
-    char * icon0 = "🔇";
-    char * iconlow = "🔈";
-    char * iconmed = "🔉";
-    char * iconhig = "🔊";
+/* char * */
+/* get_vol(void) */
+/* { */
+/*     int vol; */
+/*     int maxvol = 64; */
+/*     char * icon0 = "🔇"; */
+/*     char * iconlow = "🔈"; */
+/*     char * iconmed = "🔉"; */
+/*     char * iconhig = "🔊"; */
 
-    snd_hctl_t *hctl;
-    snd_ctl_elem_id_t *id;
-    snd_ctl_elem_value_t *control;
+/*     snd_hctl_t *hctl; */
+/*     snd_ctl_elem_id_t *id; */
+/*     snd_ctl_elem_value_t *control; */
 
-// To find card and subdevice: /proc/asound/, aplay -L, amixer controls
-    snd_hctl_open(&hctl, "hw:0", 0);
-    snd_hctl_load(hctl);
+/* // To find card and subdevice: /proc/asound/, aplay -L, amixer controls */
+/*     snd_hctl_open(&hctl, "hw:0", 0); */
+/*     snd_hctl_load(hctl); */
 
-    snd_ctl_elem_id_alloca(&id);
-    snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_MIXER);
+/*     snd_ctl_elem_id_alloca(&id); */
+/*     snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_MIXER); */
 
-// amixer controls
-    snd_ctl_elem_id_set_name(id, "Master Playback Volume");
+/* // amixer controls */
+/*     snd_ctl_elem_id_set_name(id, "Master Playback Volume"); */
 
-    snd_hctl_elem_t *elem = snd_hctl_find_elem(hctl, id);
+/*     snd_hctl_elem_t *elem = snd_hctl_find_elem(hctl, id); */
 
-    snd_ctl_elem_value_alloca(&control);
-    snd_ctl_elem_value_set_id(control, id);
+/*     snd_ctl_elem_value_alloca(&control); */
+/*     snd_ctl_elem_value_set_id(control, id); */
 
-    snd_hctl_elem_read(elem, control);
-    vol = (int)snd_ctl_elem_value_get_integer(control,0) * 100 / maxvol;
-    snd_hctl_close(hctl);
+/*     snd_hctl_elem_read(elem, control); */
+/*     vol = (int)snd_ctl_elem_value_get_integer(control,0) * 100 / maxvol; */
+/*     snd_hctl_close(hctl); */
 
-    if (vol == 0) {
-        return smprintf("%s", icon0);
-    } else if (vol <= 25) {
-        return smprintf("%s %d", iconlow, vol);
-    } else if (vol <= 75) {
-        return smprintf("%s %d", iconmed, vol);
-    } else {
-        return smprintf("%s %d", iconhig, vol);
-    }
-}
+/*     if (vol == 0) { */
+/*         return smprintf("%s", icon0); */
+/*     } else if (vol <= 25) { */
+/*         return smprintf("%s %d", iconlow, vol); */
+/*     } else if (vol <= 75) { */
+/*         return smprintf("%s %d", iconmed, vol); */
+/*     } else { */
+/*         return smprintf("%s %d", iconhig, vol); */
+/*     } */
+/* } */
+
 
 int
 main(void)

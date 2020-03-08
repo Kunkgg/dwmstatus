@@ -33,8 +33,11 @@ CC = cc
 MPDLIB   =  -lmpdclient
 MPDFLAG  =  -DMPD
 
-ALSALIB   =  -lasound
+#ALSALIB   =  -lasound
+PULSELIB   =  -lpulse
+PULSEFLAG   =  -libs
 
-LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${MPDLIB} ${ALSALIB}
+#LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${MPDLIB} ${ALSALIB}
+LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${MPDLIB} ${PULSELIB}
 
-CPPFLAGS = ${MPDFLAG} -DVERSION=\"${VERSION}\"
+CPPFLAGS = ${MPDFLAG} ${PULSEFLAG} -DVERSION=\"${VERSION}\"
