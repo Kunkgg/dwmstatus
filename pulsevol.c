@@ -188,7 +188,7 @@ get_vol() {
     char vol_str[PA_CVOLUME_SNPRINT_MAX];
     struct pa_cvolume *volume_tmp;
 	pa_sink_state_t state;
-    char * icon_vol = "🔉";
+    char * icon_vol = "";
     char * icon_bluetooth = "";
     char * icon_headset = "";
     char * icon;
